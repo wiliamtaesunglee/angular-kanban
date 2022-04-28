@@ -1,0 +1,14 @@
+{
+  "targets": {
+    "kanban-2c335": {
+      "hosting": {
+        "angular-proj": [
+          "kanban-2c335"
+        ]
+      }
+    }
+  },
+  "projects": {
+    "default": "kanban-2c335"
+  }
+}
