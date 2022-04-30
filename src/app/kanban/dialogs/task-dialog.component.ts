@@ -53,6 +53,7 @@ export class TaskDialogComponent {
   }
 
   handleTaskDelete() {
+    this.data.board.tasks = this.data.board.tasks.filter((_: any, index: number) => this.data.idx !== index);
     this.boardService.removeTask(this.data.boardId, this.data.task);
     this.dialogRef.close();
   }

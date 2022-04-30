@@ -10,9 +10,10 @@ import {
   where, 
   query,
   getDocs,
+  setDoc,
+  onSnapshot
 } from '@firebase/firestore'
 import { initializeApp } from 'firebase/app';
-import { switchMap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Board } from './board.model';
 
@@ -27,6 +28,10 @@ const collectionRef = collection(firestore, 'boards');
 export class BoardService {
   constructor(private afAuth: AngularFireAuth, private db: AngularFirestore) {}
   
+  getUser() {
+    return this.afAuth.currentUser;
+  }
+
   /**
    * Creates a new board for the current user
    */
@@ -53,16 +58,32 @@ export class BoardService {
    * Updates the tasks on board
    */
   async updateTasks(boardId: string, tasks: Task[]) {
-    return this.db
-      .collection('boards')
-      .doc(boardId)
-      .update({ tasks });
+    console.log('first step', boardId);
+    const documentRef = doc(firestore, 'boards', boardId)
+    console.warn('step 2', boardId);
+    return await setDoc(documentRef,
+      {
+        tasks: tasks,
+      },
+      { merge: true }
+    )
+      .then(() => {
+        console.log("Updated/merged!");
+      })
+      .catch((error) => {
+        console.error("deu erro",error);
+      });
+
+    // return await this.db
+    //   .collection('boards')
+    //   .doc(boardId)
+    //   .update({ tasks });
   }
 
   /**
    * Remove a specific task from the board
    */
-  removeTask(boardId: string, task: Task) {
+  async removeTask(boardId: string, task: Task) {
     return this.db
       .collection('boards')
       .doc(boardId)
@@ -81,11 +102,19 @@ export class BoardService {
       collectionRef,
       where("uid", "==", userData?.uid),
     );
+    // onSnapshot(collectionQuery, (querySnapshots) => {
+    //   querySnapshots.forEach((eachDoc) => {
+    //     console.log('eachDoc', eachDoc)
+    //     boardsList.push({...eachDoc.data(), id: eachDoc.id});
+    //   });
+    // });
     const querySnapshot = await getDocs(collectionQuery);
     querySnapshot.forEach((eachDoc) => {
       const data = {...eachDoc.data(), id: eachDoc.id};
       boardsList.push(data)
     });
+    console.log('boardList', boardsList);
+
     return boardsList.sort((a: any, b: any) => a.priority - b.priority);
   }
 

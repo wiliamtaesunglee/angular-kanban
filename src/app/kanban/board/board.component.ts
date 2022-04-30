@@ -1,6 +1,7 @@
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Component, Input } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { filter } from 'rxjs';
 import { BoardService } from '../board.service';
 import { TaskDialogComponent } from '../dialogs/task-dialog.component';
 
@@ -24,27 +25,26 @@ export class BoardComponent {
     const dialogRef = this.dialog.open(TaskDialogComponent, {
       width: '500px',
       data: task
-        ? { task: { ...task }, isNew: false, boardId: this.board.id, idx }
-        : { task: newTask, isNew: true }
+        ? { task: { ...task }, isNew: false, boardId: this.board.id, idx, board: this.board }
+        : { task: newTask, isNew: true, board: this.board }
     });
 
     dialogRef.afterClosed().subscribe((result: { isNew: any; task: Task; idx: any; tak: any; }) => {
       if (result) {
         if (result.isNew) {
-          this.boardService.updateTasks(this.board.id, [
-            ...this.board.tasks,
-            result.task
-          ]);
+          this.board.tasks.push(result.task);
+          this.boardService.updateTasks(this.board.id, this.board.tasks);
         } else {
           const update = this.board.tasks;
           update.splice(result.idx, 1, result.task);
           this.boardService.updateTasks(this.board.id, this.board.tasks);
         }
-      } 
+      }
     })
   }
 
   handleDelete() {
     this.boardService.deleteBoard(this.board.id);
+    this.board = null
   }
 }
